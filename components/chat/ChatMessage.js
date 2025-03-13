@@ -35,8 +35,6 @@ const ChatMessage = ({
     switch (true) {
       case system:
         return "chat-system";
-      case isCurrentUser && isLastFromUser:
-        return "chat-end";
       case isCurrentUser:
         return "chat-end";
       case isLastFromUser:
@@ -106,15 +104,14 @@ const ChatMessage = ({
 
       <div className="chat-footer">
         {/* Show username and timestamp if not a system message and either not connected to previous or is a time break */}
-        {!system &&
-          (isLastFromUser || (!isConnectedToPrevious && isTimeBreak)) && (
-            <>
-              {username}
-              <time className="text-xs opacity-50">
-                {timestamp && new Date(timestamp).toLocaleTimeString()}
-              </time>
-            </>
-          )}
+        {!system && isLastFromUser && (
+          <>
+            {username}
+            <time className="text-xs opacity-50">
+              {timestamp && new Date(timestamp).toLocaleTimeString()}
+            </time>
+          </>
+        )}
       </div>
 
       {!system && <div className="chat-footer opacity-50"></div>}
