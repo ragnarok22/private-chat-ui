@@ -1,9 +1,10 @@
 import React from "react";
 import FormattedMessage from "./FormattedMessage";
+import { isImageUrl, isYoutubeVideoUrl } from "../../utils/checkers";
 
 /**
  * ChatMessage - Component for rendering a single chat message
- * 
+ *
  * @param {Object} props
  * @param {Object} props.message - The message object to display
  * @param {boolean} props.isCurrentUser - Whether the message is from the current user
@@ -11,56 +12,73 @@ import FormattedMessage from "./FormattedMessage";
  * @param {boolean} props.isLastFromUser - Whether this message is the latest from the user in sequence
  * @param {boolean} props.isTimeBreak - Whether this message starts a new thread after a time gap
  */
-const ChatMessage = ({ message, isCurrentUser, isConnectedToPrevious, isLastFromUser, isTimeBreak }) => {
-  const { system, username, content, timestamp, type, imageData, caption } = message;
-  
-  const youtubeCheckRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/
-  const isImageFromTheWeb = /^(https?:\/\/.*\.(?:jpg|gif|avif))(?:\?.*)?$/i.test(content)
-  const isYoutubeVideo  = youtubeCheckRegex.test(content)
-  
+const ChatMessage = ({
+  message,
+  isCurrentUser,
+  isConnectedToPrevious,
+  isLastFromUser,
+  isTimeBreak,
+}) => {
+  const { system, username, content, timestamp, type, imageData, caption } =
+    message;
+
+  const isImageFromTheWeb = isImageUrl(content);
+  const isYoutubeVideo = isYoutubeVideoUrl(content);
+
   // Determine if this is an image message
   const isImageMessage = type === "IMAGE_MESSAGE" || isImageFromTheWeb;
-  
-  // Determine chat position class based on message type
-  const chatPositionClass = system ? 'chat-system' : (
-    isCurrentUser ? 
-      isLastFromUser ? 'chat-end' : 'chat-end'
-    :
-      isLastFromUser ? 'chat-start' : 'chat-start'
-  );
 
-  const carotClass = 
-    isCurrentUser ? 
-      isLastFromUser || isTimeBreak ? '' : 'no-carot'
-    :
-      isLastFromUser || isTimeBreak ? '' : 'no-carot';
-  
+  // Determine chat position class based on message type
+  const chatPositionClass = system
+    ? "chat-system"
+    : isCurrentUser
+      ? isLastFromUser
+        ? "chat-end"
+        : "chat-end"
+      : isLastFromUser
+        ? "chat-start"
+        : "chat-start";
+
+  const carotClass = isCurrentUser
+    ? isLastFromUser || isTimeBreak
+      ? ""
+      : "no-carot"
+    : isLastFromUser || isTimeBreak
+      ? ""
+      : "no-carot";
+
   // Determine bubble style based on message type
-  const bubbleClass = system 
-    ? 'chat-bubble-system bg-gray-700' 
-    : 'chat-bubble-neutral bg-gray-700';
+  const bubbleClass = system
+    ? "chat-bubble-system bg-gray-700"
+    : "chat-bubble-neutral bg-gray-700";
 
   // Add connected message styling
-  const connectedClass = isConnectedToPrevious && !system && !isTimeBreak ? 'mt-0 pt-1' : 'mt-4';
-  
+  const connectedClass =
+    isConnectedToPrevious && !system && !isTimeBreak ? "mt-0 pt-1" : "mt-4";
+
   // Add margin to maintain spacing when avatar is not shown
   // Only add margin if not a system message and if this is not the last message from this user or a time break
-  let spacingClass = '';
+  let spacingClass = "";
   if (!system && !isLastFromUser && !isTimeBreak) {
-    spacingClass = isCurrentUser ? 'mr-8' : 'ml-8';
+    spacingClass = isCurrentUser ? "mr-8" : "ml-8";
   }
 
   return (
-    <div className={`chat ${chatPositionClass} animate__animated animate__fadeIn ${connectedClass} ${spacingClass}`}>
+    <div
+      className={`chat ${chatPositionClass} animate__animated animate__fadeIn ${connectedClass} ${spacingClass}`}
+    >
       {/* Show avatar if not a system message and is either the last message from this user or marks a time break */}
       {!system && (isLastFromUser || isTimeBreak) && (
         <div className="chat-image avatar">
           <div className="w-8 rounded-full">
-            <img src={`https://avatar.vercel.sh/${username}`} alt={`${username}'s avatar`} />
+            <img
+              src={`https://avatar.vercel.sh/${username}`}
+              alt={`${username}'s avatar`}
+            />
           </div>
         </div>
       )}
-      
+
       <div className="chat-header">
         {/* Show username and timestamp if not a system message and either not connected to previous or is a time break */}
         {!system && (!isConnectedToPrevious || isTimeBreak) && (
@@ -72,17 +90,17 @@ const ChatMessage = ({ message, isCurrentUser, isConnectedToPrevious, isLastFrom
           </>
         )}
       </div>
-      
+
       <div className={`chat-bubble ${bubbleClass} ${carotClass}`}>
-        <FormattedMessage 
-          text={content} 
+        <FormattedMessage
+          text={content}
           isYoutubeVideo={isYoutubeVideo}
-          isImageMessage={isImageMessage} 
-          imageData={isImageFromTheWeb ? content: imageData} 
-          imageCaption={caption} 
+          isImageMessage={isImageMessage}
+          imageData={isImageFromTheWeb ? content : imageData}
+          imageCaption={caption}
         />
       </div>
-      
+
       {!system && <div className="chat-footer opacity-50"></div>}
     </div>
   );
